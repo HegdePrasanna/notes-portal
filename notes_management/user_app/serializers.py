@@ -58,6 +58,13 @@ class UserSerializerCreate(serializers.ModelSerializer):
         return instance
 
 
+class UserSerializerLite(serializers.ModelSerializer):
+    role = RoleSerializer(read_only=True)
+    class Meta:
+        model = User
+        fields = ("username", "email", "role")
+
+
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)
     class Meta:
