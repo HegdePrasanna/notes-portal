@@ -44,5 +44,10 @@ class User(AbstractUser, AuditModel):
         # Check if at least one of role or is_superuser is set
         if not any([self.role, self.is_staff, self.is_superuser]):
             raise ValidationError(_("At least one of role, is_staff, or is_superuser must be set."))
+        
+    @classmethod
+    def get_active(self):
+        active_objects = User.objects.filter(is_active=True, is_deleted=False)
+        return active_objects
 
     

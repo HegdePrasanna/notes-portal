@@ -5,7 +5,9 @@ class Generic403Serializer(serializers.Serializer):
 
 
 class Generic401Serializer(serializers.Serializer):
+    status = serializers.IntegerField(default=401)
     detail = serializers.CharField(max_length=50, default="User Not Authorized to Access the Resource.")
+    data = serializers.ListField(default=[])
 
 
 class Generic400Serializer(serializers.Serializer):
