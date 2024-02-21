@@ -6,7 +6,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import PermissionDenied, NotFound, NotAuthenticated
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
-from .models import Notes, NotesUser
+from .models import Notes, NotesUser, NotesAudit
 from . import serializers
 from notes_management import serializers as gs
 # Create your views here.
@@ -124,6 +124,28 @@ class SingleNoteView(APIView):
         notes_serializer = serializers.NoteCreateSerializer(notes_queryset)
         return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully retrieved.', 'metadata':notes_serializer.data})
 
+    @swagger_auto_schema(
+        request_body=serializers.NoteCreateSerializer,
+        responses={201: serializers.NoteReturnSerializer(), 400:gs.Generic400Serializer(), 403:gs.Generic403Serializer(), 404:gs.Generic404Serializer(),
+                   401:gs.Generic401Serializer()}
+    )
+    def put(self, request, note_id):
+        """
+        Update Note By Primary Key. Available Only if Note is Shared with User and User can edit permission
+        """
+        try:
+            notes_queryset = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
+        except Notes.DoesNotExist:
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'metadata':[]}, status=status.HTTP_404_NOT_FOUND)
+        
+        request_data = request.data.copy()
+        request_data['modified_by'] = request.user.id
+        serializer = serializers.NoteCreateSerializer(notes_queryset, data=request_data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully updated.', 'metadata':serializer.data})
+        return Response({'status': status.HTTP_400_BAD_REQUEST, 'detail': 'Unable to update Note.', 'metadata':serializer.errors})
+    
 
 class SingleNoteDetailView(APIView):
     permission_classes = (IsAuthenticated, IsAuthorized)
@@ -187,3 +209,32 @@ class NotesShareView(APIView):
             'validation_errors': errors_in_data
             }
         return Response({'status': status.HTTP_200_OK, 'detail': "Notes Share Completed.", 'data':return_data}, status=status.HTTP_200_OK)
+
+
+
+class NotesHistoryView(APIView):
+    permission_classes = (IsAuthenticated, IsAuthorized)
+
+    @swagger_auto_schema(
+        responses={200: serializers.NotesAuditReturnSerializer(), 403:gs.Generic403Serializer(), 404:gs.Generic404Serializer()}
+    )
+    def get(self, request, note_id):
+        """
+        Get Note By Primary Key. Available Only if Note is Shared with User. Includes details of shared users and owner information
+        """
+        
+        notes_history_queryset = NotesAudit.objects.filter(notes_id=note_id, is_active=True, is_deleted=False)
+        if not notes_history_queryset.exists():
+            try:
+                note_exist = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
+            except NotesAudit.DoesNotExist:
+                return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Not Found.', 'metadata':[]}, status=status.HTTP_404_NOT_FOUND)
+            serializer = serializers.NotesAuditSerializer1(note_exist)
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Does Not Have Any Modifications Found.', 'metadata':serializer.data}, status=status.HTTP_404_NOT_FOUND)
+        total_changes = notes_history_queryset.count()
+        notes_audit_serializer = serializers.NotesAuditSerializer(notes_history_queryset, many=True)
+        return_data = {
+            'total_changes': total_changes,
+            'changes_history': notes_audit_serializer.data
+        }
+        return Response({'status': status.HTTP_200_OK, 'detail': 'Note History successfully retrieved.', 'metadata':return_data})
