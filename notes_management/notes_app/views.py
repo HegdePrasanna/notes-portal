@@ -77,9 +77,9 @@ class NotesView(APIView):
         notes_queryset = Notes.get_active()
         if notes_queryset.exists():
             serialized_data = serializers.NoteSerializer(notes_queryset, many=True)
-            return Response({'status': status.HTTP_200_OK, 'detail': 'Success', 'metadata':serialized_data.data})
+            return Response({'status': status.HTTP_200_OK, 'detail': 'Success', 'data':serialized_data.data})
         else:
-            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Note Not Found. Please Create a Note', 'metadata':[]},
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Note Not Found. Please Create a Note', 'data':[]},
                             status=status.HTTP_404_NOT_FOUND)
         
 
@@ -119,10 +119,10 @@ class SingleNoteView(APIView):
         try:
             notes_queryset = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
         except Notes.DoesNotExist:
-            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'metadata':[]}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
         
         notes_serializer = serializers.NoteCreateSerializer(notes_queryset)
-        return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully retrieved.', 'metadata':notes_serializer.data})
+        return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully retrieved.', 'data':notes_serializer.data})
 
     @swagger_auto_schema(
         request_body=serializers.NoteCreateSerializer,
@@ -136,15 +136,15 @@ class SingleNoteView(APIView):
         try:
             notes_queryset = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
         except Notes.DoesNotExist:
-            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'metadata':[]}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
         
         request_data = request.data.copy()
         request_data['modified_by'] = request.user.id
         serializer = serializers.NoteCreateSerializer(notes_queryset, data=request_data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully updated.', 'metadata':serializer.data})
-        return Response({'status': status.HTTP_400_BAD_REQUEST, 'detail': 'Unable to update Note.', 'metadata':serializer.errors})
+            return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully updated.', 'data':serializer.data})
+        return Response({'status': status.HTTP_400_BAD_REQUEST, 'detail': 'Unable to update Note.', 'data':serializer.errors})
     
 
 class SingleNoteDetailView(APIView):
@@ -160,10 +160,10 @@ class SingleNoteDetailView(APIView):
         try:
             notes_queryset = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
         except Notes.DoesNotExist:
-            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'metadata':[]}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
         
         notes_serializer = serializers.NoteSerializer(notes_queryset)
-        return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully retrieved.', 'metadata':notes_serializer.data})
+        return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully retrieved.', 'data':notes_serializer.data})
 
 
 class NotesShareView(APIView):
@@ -228,13 +228,13 @@ class NotesHistoryView(APIView):
             try:
                 note_exist = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
             except NotesAudit.DoesNotExist:
-                return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Not Found.', 'metadata':[]}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
             serializer = serializers.NotesAuditSerializer1(note_exist)
-            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Does Not Have Any Modifications Found.', 'metadata':serializer.data}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Does Not Have Any Modifications Found.', 'data':serializer.data}, status=status.HTTP_404_NOT_FOUND)
         total_changes = notes_history_queryset.count()
         notes_audit_serializer = serializers.NotesAuditSerializer(notes_history_queryset, many=True)
         return_data = {
             'total_changes': total_changes,
             'changes_history': notes_audit_serializer.data
         }
-        return Response({'status': status.HTTP_200_OK, 'detail': 'Note History successfully retrieved.', 'metadata':return_data})
+        return Response({'status': status.HTTP_200_OK, 'detail': 'Note History successfully retrieved.', 'data':return_data})
