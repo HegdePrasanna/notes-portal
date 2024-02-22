@@ -35,3 +35,13 @@ class NotesUser(AuditModel):
     can_read = models.BooleanField(default=True)
     can_edit = models.BooleanField(default=False)
     can_delete = models.BooleanField(default=False)
+
+
+class NotesAudit(AuditModel):
+    notes = models.ForeignKey(Notes, on_delete=models.CASCADE, related_name='notes_audit')
+    modified_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    old_note_content = models.TextField()
+    new_note_content = models.TextField()
+    old_note_type = models.CharField(max_length=20)
+    new_note_type = models.CharField(max_length=20)
+    created_at = models.DateTimeField()
