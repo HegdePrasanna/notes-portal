@@ -124,7 +124,7 @@ class UserView(APIView):
         
 
 class SignUpView(APIView):
-    permission_classes = (IsAuthenticated, )
+    # permission_classes = (IsAuthenticated, )
     
     @swagger_auto_schema(
         request_body=serializers.UserSerializerCreate,
@@ -198,3 +198,21 @@ class SingleUserView(APIView):
         user_queryset.save()
         return Response({'status': status.HTTP_200_OK, 'detail': 'User successfully Deleted.', 'metadata':[]})
 
+
+class LoginView(APIView):
+    # permission_classes = (IsAuthenticated, )
+    
+    @swagger_auto_schema(
+        request_body=serializers.UserSerializerCreate,
+        responses={201: serializers.UserReturnSerializer(), 400:gs.Generic400Serializer(), 403:gs.Generic403Serializer(), 404:gs.Generic404Serializer(), 401:gs.Generic401Serializer()}
+    )
+    def post(self, request):
+        """
+        Create New User
+        """
+        serializer = serializers.UserSerializerCreate(data=request.data)
+        if serializer.is_valid():
+            saved_instance = serializer.save()
+            return_serializer = serializers.UserSerializer(saved_instance)
+            return Response({'status': status.HTTP_201_CREATED, 'detail': "User Created.", 'data':return_serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({'status': status.HTTP_400_BAD_REQUEST, 'detail': serializer.errors, 'data':[]}, status=status.HTTP_400_BAD_REQUEST)
