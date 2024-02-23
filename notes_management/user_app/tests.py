@@ -91,10 +91,54 @@ class TestGetUserDetails(TestSetup):
         # pdb.set_trace()
         self.assertEqual(res.data['status'], 404)
     
+    def test_edit_user_by_wrongid(self):
+        new_user = User.objects.create(username='testuser003', password='testpassword', email='testmail001@mail.com')
+        refresh = AccessToken.for_user(new_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh}')
+        update_data = {
+            "email":"testmailupdate002@mail.com"
+        }
+        res = self.client.put(reverse('get_put_delete_user', kwargs={'pk': 100082}), data = update_data)
+        # pdb.set_trace()
+        self.assertEqual(res.data['status'], 404)
+    
     def test_edit_user_by_id(self):
         new_user = User.objects.create(username='testuser003', password='testpassword', email='testmail001@mail.com')
         refresh = AccessToken.for_user(new_user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh}')
-        res = self.client.get(reverse('get_put_delete_user',  kwargs={'pk': 100082}))
+        update_data = {
+            "email":"testmailupdate002@mail.com"
+        }
+        res = self.client.put(reverse('get_put_delete_user', kwargs={'pk': new_user.id}), data = update_data)
+        # pdb.set_trace()
+        self.assertEqual(res.data['status'], 200)
+    
+    def test_edit_user_pw_by_id(self):
+        new_user = User.objects.create(username='testuser003', password='testpassword', email='testmail001@mail.com')
+        refresh = AccessToken.for_user(new_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh}')
+        update_data = {
+            "email":"testmailupdate002@mail.com",
+            "password":"123456"
+        }
+        res = self.client.put(reverse('get_put_delete_user', kwargs={'pk': new_user.id}), data = update_data)
+        pdb.set_trace()
+        self.assertEqual(res.data['status'], 200)
+
+    def test_disable_user_by_wrongid(self):
+        new_user = User.objects.create(username='testuser003', password='testpassword', email='testmail001@mail.com')
+        refresh = AccessToken.for_user(new_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh}')
+        
+        res = self.client.put(reverse('get_put_delete_user', kwargs={'pk': 100082}))
         # pdb.set_trace()
         self.assertEqual(res.data['status'], 404)
+    
+    def test_disable_user_by_id(self):
+        new_user = User.objects.create(username='testuser003', password='testpassword', email='testmail001@mail.com')
+        refresh = AccessToken.for_user(new_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh}')
+        
+        res = self.client.delete(reverse('get_put_delete_user', kwargs={'pk': new_user.id}))
+        # pdb.set_trace()
+        self.assertEqual(res.data['status'], 200)

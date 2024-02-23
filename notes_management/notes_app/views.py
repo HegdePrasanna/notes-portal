@@ -146,6 +146,29 @@ class SingleNoteView(APIView):
             return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully updated.', 'data':serializer.data})
         return Response({'status': status.HTTP_400_BAD_REQUEST, 'detail': 'Unable to update Note.', 'data':serializer.errors})
     
+    @swagger_auto_schema(
+        responses={200: serializers.NoteReturnSerializer(), 400:gs.Generic400Serializer(), 403:gs.Generic403Serializer(), 404:gs.Generic404Serializer(),
+                   401:gs.Generic401Serializer()}
+    )
+    def delete(self, request, note_id):
+        """
+        Disable Note By Primary Key. Available Only if Note is Shared with User and User have delete permission
+        """
+        try:
+            notes_queryset = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
+        except Notes.DoesNotExist:
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
+        notes_queryset.is_active = False
+        notes_queryset.is_deleted = True
+        notes_queryset.modified_by = request.user
+        # request_data = request.data.copy()
+        # request_data['modified_by'] = request.user.id
+        notes_queryset.save()
+        # serializer = serializers.NoteCreateSerializer(notes_queryset, data=request_data, partial=True)
+        # if serializer.is_valid():
+        #     serializer.save()
+        return Response({'status': status.HTTP_200_OK, 'detail': 'Note Successfully Deleted.', 'data':[]})
+    
 
 class SingleNoteDetailView(APIView):
     permission_classes = (IsAuthenticated, IsAuthorized)
