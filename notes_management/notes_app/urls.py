@@ -3,7 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("notes/", views.NotesView.as_view(), name='get_notes'),
+    path("notes/", views.NotesView.as_view(), name='get_all_notes'),
     path("notes/create/", views.NotesCreateView.as_view(), name='create_notes'),
     path("notes/<int:note_id>/", views.SingleNoteView.as_view(), name='get_notes'),
     path("notes/<int:note_id>/detail/", views.SingleNoteDetailView.as_view(), name='get_detailed_notes'),

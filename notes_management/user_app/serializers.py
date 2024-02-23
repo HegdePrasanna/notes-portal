@@ -47,7 +47,7 @@ class UserSerializerCreate(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         omitted_field = validated_data.pop('is_deleted', None)
-        password = validated_data.pop('password')
+        password = validated_data.pop('password', None)
         
         if password is not None:
             instance.set_password(password)
