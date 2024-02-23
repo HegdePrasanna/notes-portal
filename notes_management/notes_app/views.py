@@ -119,7 +119,7 @@ class SingleNoteView(APIView):
         try:
             notes_queryset = Notes.objects.get(pk=note_id, is_active=True, is_deleted=False)
         except Notes.DoesNotExist:
-            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
         
         notes_serializer = serializers.NoteCreateSerializer(notes_queryset)
         return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully retrieved.', 'data':notes_serializer.data})
@@ -144,7 +144,7 @@ class SingleNoteView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({'status': status.HTTP_200_OK, 'detail': 'Note successfully updated.', 'data':serializer.data})
-        return Response({'status': status.HTTP_400_BAD_REQUEST, 'detail': 'Unable to update Note.', 'data':serializer.errors})
+        return Response({'status': status.HTTP_400_BAD_REQUEST, 'detail': 'Unable to update Note.', 'data':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
     @swagger_auto_schema(
         responses={200: serializers.NoteReturnSerializer(), 400:gs.Generic400Serializer(), 403:gs.Generic403Serializer(), 404:gs.Generic404Serializer(),
@@ -253,7 +253,7 @@ class NotesHistoryView(APIView):
             except NotesAudit.DoesNotExist:
                 return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Not Found.', 'data':[]}, status=status.HTTP_404_NOT_FOUND)
             serializer = serializers.NotesAuditSerializer1(note_exist)
-            return Response({'status': status.HTTP_404_NOT_FOUND, 'detail': 'Requested Note Does Not Have Any Modifications Found.', 'data':serializer.data}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': status.HTTP_200_OK, 'detail': 'Requested Note Does Not Have Any Modifications Found.', 'data':serializer.data}, status=status.HTTP_200_OK)
         total_changes = notes_history_queryset.count()
         notes_audit_serializer = serializers.NotesAuditSerializer(notes_history_queryset, many=True)
         return_data = {
