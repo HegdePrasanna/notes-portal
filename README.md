@@ -1,11 +1,6 @@
 # Notes Portal
 Welcome to the Notes Portal, a Django REST application for managing your notes.
 
-## Swagger Documentation
-The APIs are deployed on AWS and can be accessed using [this link](http://15.207.84.124:8000/api/docs/)
-```bash
-http://15.207.84.124:8000/api/docs/
-```
 
 ## How to Run in Local Machine
 To clone this repository, use the following command:
@@ -32,6 +27,13 @@ Run the APIs
 ```bash
 python manage.py runserver
 ```
+
+## Swagger Documentation
+The APIs are deployed on AWS and can be accessed using [this link](http://localhost:8000/api/docs/)
+```bash
+http://localhost:8000/api/docs/
+```
+
 
 ## Features
 1. Users can register themselves
